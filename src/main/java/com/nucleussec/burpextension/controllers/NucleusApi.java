@@ -43,7 +43,7 @@ public class NucleusApi {
         mainView.setProgressBar(75);
         Response response = client.newCall(request).execute();
         if(response.code() != 200) {
-            JOptionPane.showMessageDialog(mainView, "An error has occured uploading the scan. Error code: " + response.code());
+            JOptionPane.showMessageDialog(mainView, "An error has occured uploading the scan. Error code: " + response.code(), "Error has occured", JOptionPane.ERROR_MESSAGE);
         } else mainView.setProgressBar(90);
     }
     

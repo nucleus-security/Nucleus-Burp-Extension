@@ -25,6 +25,7 @@ import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.swing.DefaultListModel;
+import javax.swing.JOptionPane;
 
 public class MainView extends javax.swing.JPanel {
     
@@ -123,6 +124,35 @@ public class MainView extends javax.swing.JPanel {
                 Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+    
+    private void pushToNucleus() {
+        long currentTime = System.currentTimeMillis();
+        String fileName = System.getenv("USERPROFILE")+"\\AppData\\Local\\Temp\\nucleusBurpExtension-" + currentTime + ".xml";
+        File file = new File(fileName);
+        setProgressBar(15);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                callbacks.generateScanReport("xml", getScanIssues(), file);
+                jProgressBar.setValue(30);
+                
+                checkIfFileIsWritten(GlobalUtils.isCompletelyWritten(file));
+                
+                zipFile(file);
+                String zipFileName = System.getenv("USERPROFILE")+"\\AppData\\Local\\Temp\\" + file.getName() + ".zip";
+                File zipFile = new File(zipFileName);
+                
+                checkIfFileIsWritten(GlobalUtils.isCompletelyWritten(zipFile));
+        
+                try {
+                    nucleusApi.uploadScanFile(zipFile, zipFile.getName());
+                    jProgressBar.setValue(100);
+                } catch (IOException ex) {
+                    System.out.println(ex.getMessage());
+                }
+            }
+        }).start(); 
     }
     
     public String getCurrentSelectedProject() {
@@ -295,32 +325,11 @@ public class MainView extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnPushToNucleusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPushToNucleusActionPerformed
-        long currentTime = System.currentTimeMillis();
-        String fileName = System.getenv("USERPROFILE")+"\\AppData\\Local\\Temp\\nucleusBurpExtension-" + currentTime + ".xml";
-        File file = new File(fileName);
-        setProgressBar(15);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                callbacks.generateScanReport("xml", getScanIssues(), file);
-                jProgressBar.setValue(30);
-                
-                checkIfFileIsWritten(GlobalUtils.isCompletelyWritten(file));
-                
-                zipFile(file);
-                String zipFileName = System.getenv("USERPROFILE")+"\\AppData\\Local\\Temp\\" + file.getName() + ".zip";
-                File zipFile = new File(zipFileName);
-                
-                checkIfFileIsWritten(GlobalUtils.isCompletelyWritten(zipFile));
+        String errors = "";
+        if (prefs.get("instance_url", "").isEmpty() || prefs.get("x-apikey", "").isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Some fields appear to be empty. Please fill in these fields and try again.", "Error has occured", JOptionPane.ERROR_MESSAGE);
+        } else pushToNucleus();
         
-                try {
-                    nucleusApi.uploadScanFile(zipFile, zipFile.getName());
-                    jProgressBar.setValue(100);
-                } catch (IOException ex) {
-                    System.out.println(ex.getMessage());
-                }
-            }
-        }).start();        
     }//GEN-LAST:event_btnPushToNucleusActionPerformed
 
     private void btnSyncWithNucleusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSyncWithNucleusActionPerformed
