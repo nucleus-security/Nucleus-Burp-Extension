@@ -10,6 +10,8 @@ import burp.IScanIssue;
 import com.nucleussec.burpextension.controllers.NucleusApi;
 import com.nucleussec.burpextension.utils.GlobalUtils;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +22,8 @@ import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import javax.swing.DefaultListModel;
 
 public class MainView extends javax.swing.JPanel {
@@ -88,6 +92,37 @@ public class MainView extends javax.swing.JPanel {
         }
         
         return scanIssues.toArray(new IScanIssue[scanIssues.size()]);
+    }
+    
+    private void zipFile(File file) {
+        try {
+            FileOutputStream fos = new FileOutputStream(System.getenv("USERPROFILE")+"\\AppData\\Local\\Temp\\" + file.getName()+".zip");
+            ZipOutputStream zipOut = new ZipOutputStream(fos);
+            FileInputStream fis = new FileInputStream(file);
+            ZipEntry zipEntry = new ZipEntry(file.getName());
+            zipOut.putNextEntry(zipEntry);
+            byte[] bytes = new byte[1024];
+            int length;
+            while((length = fis.read(bytes)) >= 0) {
+                zipOut.write(bytes, 0, length);
+            }
+            zipOut.close();
+            fis.close();
+            fos.close();
+        } catch (IOException ex) {
+            Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void checkIfFileIsWritten(boolean isCompletelyWritten) {
+        while(!isCompletelyWritten) {
+            try {
+                Thread.sleep(1000);
+                jProgressBar.setValue(45);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
     
     public String getCurrentSelectedProject() {
@@ -269,17 +304,17 @@ public class MainView extends javax.swing.JPanel {
             public void run() {
                 callbacks.generateScanReport("xml", getScanIssues(), file);
                 jProgressBar.setValue(30);
-                while(!GlobalUtils.isCompletelyWritten(file)) {
-                    try {
-                        Thread.sleep(1000);
-                        jProgressBar.setValue(45);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
+                
+                checkIfFileIsWritten(GlobalUtils.isCompletelyWritten(file));
+                
+                zipFile(file);
+                String zipFileName = System.getenv("USERPROFILE")+"\\AppData\\Local\\Temp\\" + file.getName() + ".zip";
+                File zipFile = new File(zipFileName);
+                
+                checkIfFileIsWritten(GlobalUtils.isCompletelyWritten(zipFile));
         
                 try {
-                    nucleusApi.uploadScanFile(file, file.getName());
+                    nucleusApi.uploadScanFile(zipFile, zipFile.getName());
                     jProgressBar.setValue(100);
                 } catch (IOException ex) {
                     System.out.println(ex.getMessage());

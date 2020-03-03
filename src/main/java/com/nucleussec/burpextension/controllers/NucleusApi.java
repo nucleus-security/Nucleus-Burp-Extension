@@ -3,24 +3,12 @@
  */
 package com.nucleussec.burpextension.controllers;
 
-import com.nucleussec.burpextension.utils.GlobalUtils;
 import com.nucleussec.burpextension.view.MainView;
 import java.io.File;
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.swing.JOptionPane;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -37,44 +25,9 @@ public class NucleusApi {
     private Preferences prefs;
     
     public NucleusApi(MainView mainView, Preferences prefs) {
+        this.client = new OkHttpClient();
         this.mainView = mainView;
         this.prefs = prefs;
-        try {
-            final TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    @Override
-                    public void checkClientTrusted(java.security.cert.X509Certificate[] chain,
-                            String authType) throws CertificateException {
-                    }
-                    
-                    @Override
-                    public void checkServerTrusted(java.security.cert.X509Certificate[] chain,
-                            String authType) throws CertificateException {
-                    }
-                    
-                    @Override
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                        return new X509Certificate[0];
-                    }
-                }
-            };
-            final SSLContext sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-            this.client = new OkHttpClient.Builder()
-                    .sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0])
-                    .hostnameVerifier(new HostnameVerifier() {
-                        @Override
-                        public boolean verify(String string, SSLSession ssls) {
-                            return true;
-                        }
-                    })
-                    .build();
-        } catch (KeyManagementException ex) {
-            Logger.getLogger(NucleusApi.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(NucleusApi.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
         
     public void uploadScanFile(File scanFile, String scanFileName) throws IOException {
@@ -89,7 +42,9 @@ public class NucleusApi {
                 .addHeader("x-apikey", prefs.get("x-apikey", "")).post(requestBody).build();
         mainView.setProgressBar(75);
         Response response = client.newCall(request).execute();
-        mainView.setProgressBar(90);
+        if(response.code() != 200) {
+            JOptionPane.showMessageDialog(mainView, "An error has occured uploading the scan. Error code: " + response.code());
+        } else mainView.setProgressBar(90);
     }
     
     public HashMap<String, String> getProjects() throws IOException {
