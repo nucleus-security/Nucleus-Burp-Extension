@@ -1,5 +1,7 @@
 # Nucleus Burp Extension
-This extension allows you to push scan issues directly to Nucleus within Burp.
+This extension allows Burp Suite scans to be pushed to the Nucleus platform.
+
+Nucleus automates vulnerability analysis, prioritization, triage, and reporting to help your organization make better vulnerability decisions and mitigate vulnerabilities much faster than they can today.
 
 # Usage
 To use this plugin, you will need to have a Nucleus instance. Request a free trial instance at nucleussec.com.
