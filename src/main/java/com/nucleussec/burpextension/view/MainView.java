@@ -3,9 +3,9 @@
  */
 package com.nucleussec.burpextension.view;
 
+import burp.ExtensionStateListener;
 import burp.IBurpExtenderCallbacks;
 import burp.IHttpRequestResponse;
-import burp.IHttpService;
 import burp.IScanIssue;
 import com.nucleussec.burpextension.controllers.NucleusApi;
 import com.nucleussec.burpextension.utils.GlobalUtils;
@@ -14,11 +14,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -32,12 +30,15 @@ public class MainView extends javax.swing.JPanel {
     private IBurpExtenderCallbacks callbacks;
     private Preferences prefs;
     private NucleusApi nucleusApi;
+    private ExtensionStateListener esl;
+    private Thread thread;
     
     /**
      * Creates new form MainView
      */
-    public MainView(IBurpExtenderCallbacks callbacks) {
+    public MainView(IBurpExtenderCallbacks callbacks, ExtensionStateListener esl) {
         this.callbacks = callbacks;
+        this.esl = esl;
         this.prefs = Preferences.userRoot().node(this.getClass().getName());
         this.nucleusApi = new NucleusApi(this, prefs);
         initComponents();
@@ -131,7 +132,7 @@ public class MainView extends javax.swing.JPanel {
         String fileName = System.getenv("USERPROFILE")+"\\AppData\\Local\\Temp\\nucleusBurpExtension-" + currentTime + ".xml";
         File file = new File(fileName);
         setProgressBar(15);
-        new Thread(new Runnable() {
+       thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 callbacks.generateScanReport("xml", getScanIssues(), file);
@@ -152,7 +153,9 @@ public class MainView extends javax.swing.JPanel {
                     System.out.println(ex.getMessage());
                 }
             }
-        }).start(); 
+        });
+       esl.setThread(thread);
+       thread.start();
     }
     
     public String getCurrentSelectedProject() {

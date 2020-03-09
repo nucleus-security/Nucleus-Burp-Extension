@@ -23,6 +23,12 @@
             <artifactId>json</artifactId>
             <version>20190722</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/net.portswigger.burp.extender/burp-extender-api -->
+        <dependency>
+            <groupId>net.portswigger.burp.extender</groupId>
+            <artifactId>burp-extender-api</artifactId>
+            <version>2.1</version>
+        </dependency>
     </dependencies>
     <build>
     <plugins>

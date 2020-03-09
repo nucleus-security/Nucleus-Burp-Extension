@@ -4,7 +4,6 @@
 package com.nucleussec.burpextension.view;
 
 import burp.ITab;
-import com.nucleussec.burpextension.utils.GlobalUtils;
 import java.awt.Component;
 
 public class Tab implements ITab {
