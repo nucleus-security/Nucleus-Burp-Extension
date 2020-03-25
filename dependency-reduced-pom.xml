@@ -5,6 +5,11 @@
   <artifactId>Nucleus-Burp-Extension</artifactId>
   <version>1.0</version>
   <build>
+    <resources>
+      <resource>
+        <directory>${basedir}/src/main/resources</directory>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
