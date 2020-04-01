@@ -29,6 +29,7 @@ import javax.imageio.ImageIO;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
+import org.json.JSONException;
 
 public class MainView extends javax.swing.JPanel {
     
@@ -71,6 +72,10 @@ public class MainView extends javax.swing.JPanel {
             });
         } catch (IOException ex) {
             Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
+            setProgressBar(0);
+        } catch(JSONException jex){
+            Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, jex);
+            setProgressBar(0);
         }
     }
     
@@ -121,6 +126,7 @@ public class MainView extends javax.swing.JPanel {
             fos.close();
         } catch (IOException ex) {
             Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
+            setProgressBar(0);
         }
     }
     
@@ -131,6 +137,7 @@ public class MainView extends javax.swing.JPanel {
                 jProgressBar.setValue(45);
             } catch (InterruptedException ex) {
                 Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
+                setProgressBar(0);
             }
         }
     }
@@ -140,7 +147,7 @@ public class MainView extends javax.swing.JPanel {
         String fileName = System.getenv("USERPROFILE")+"\\AppData\\Local\\Temp\\nucleusBurpExtension-" + currentTime + ".xml";
         File file = new File(fileName);
         setProgressBar(15);
-       thread = new Thread(new Runnable() {
+        thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 callbacks.generateScanReport("xml", getScanIssues(), file);
@@ -158,7 +165,12 @@ public class MainView extends javax.swing.JPanel {
                     nucleusApi.uploadScanFile(zipFile, zipFile.getName());
                     jProgressBar.setValue(100);
                 } catch (IOException ex) {
-                    System.out.println(ex.getMessage());
+                    Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
+                    setProgressBar(0);
+                } catch(NullPointerException npe) {
+                    Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, npe);
+                    setProgressBar(0);
+                    JOptionPane.showMessageDialog(MainView.this, "Failed to connect to Nucleus. Please make sure all fields are correct.", "Error has occured", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
