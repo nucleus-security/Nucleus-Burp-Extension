@@ -9,6 +9,7 @@ import burp.IHttpRequestResponse;
 import burp.IScanIssue;
 import com.nucleussec.burpextension.controllers.NucleusApi;
 import com.nucleussec.burpextension.utils.GlobalUtils;
+import java.awt.Color;
 import java.awt.Image;
 import java.io.File;
 import java.io.FileInputStream;
@@ -234,6 +235,15 @@ public class MainView extends javax.swing.JPanel {
 
         jLabel5.setText("Nucleus Instance URL:");
 
+        txtNucleusInstanceURL.setToolTipText("");
+        txtNucleusInstanceURL.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                txtNucleusInstanceURLFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                txtNucleusInstanceURLFocusLost(evt);
+            }
+        });
         txtNucleusInstanceURL.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 txtNucleusInstanceURLKeyReleased(evt);
@@ -397,6 +407,20 @@ public class MainView extends javax.swing.JPanel {
             JOptionPane.showMessageDialog(this, "Some fields appear to be empty or not selected. Please fill in or select these fields and try again.", "Error has occured", JOptionPane.ERROR_MESSAGE);
         } else pushToNucleus();
     }//GEN-LAST:event_btnPushToNucleusActionPerformed
+
+    private void txtNucleusInstanceURLFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNucleusInstanceURLFocusGained
+        if(prefs.get("instance_url", "").isEmpty()){
+            txtNucleusInstanceURL.setText("");
+            txtNucleusInstanceURL.setForeground(new Color(50, 50, 50));
+        }
+    }//GEN-LAST:event_txtNucleusInstanceURLFocusGained
+
+    private void txtNucleusInstanceURLFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNucleusInstanceURLFocusLost
+        if(prefs.get("instance_url", "").isEmpty()){
+            txtNucleusInstanceURL.setText("https://<instance_name>.nucleussec.com/");
+            txtNucleusInstanceURL.setForeground(new Color(150, 150, 150));
+        }
+    }//GEN-LAST:event_txtNucleusInstanceURLFocusLost
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
