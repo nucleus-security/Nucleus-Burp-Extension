@@ -14,6 +14,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -144,7 +146,8 @@ public class MainView extends javax.swing.JPanel {
     
     private void pushToNucleus() {
         long currentTime = System.currentTimeMillis();
-        String fileName = System.getenv("USERPROFILE")+"\\AppData\\Local\\Temp\\nucleusBurpExtension-" + currentTime + ".xml";
+        String osTempDir = System.getProperty("java.io.tmpdir");
+        String fileName = osTempDir + File.separator + "nucleusBurpExtension-" + currentTime + ".xml";
         File file = new File(fileName);
         setProgressBar(15);
         thread = new Thread(new Runnable() {
@@ -156,11 +159,11 @@ public class MainView extends javax.swing.JPanel {
                 checkIfFileIsWritten(GlobalUtils.isCompletelyWritten(file));
                 
                 zipFile(file);
-                String zipFileName = System.getenv("USERPROFILE")+"\\AppData\\Local\\Temp\\" + file.getName() + ".zip";
+                String zipFileName = osTempDir + File.separator + file.getName() + ".zip";
                 File zipFile = new File(zipFileName);
                 
                 checkIfFileIsWritten(GlobalUtils.isCompletelyWritten(zipFile));
-        
+                
                 try {
                     nucleusApi.uploadScanFile(zipFile, zipFile.getName());
                     jProgressBar.setValue(100);
