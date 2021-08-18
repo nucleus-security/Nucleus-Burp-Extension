@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Nucleus Security - All Rights Reserved
+ * Copyright (c) 2021 Nucleus Security - All Rights Reserved
  */
 package com.nucleussec.burpextension.utils;
 
