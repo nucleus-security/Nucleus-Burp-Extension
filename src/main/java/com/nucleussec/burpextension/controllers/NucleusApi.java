@@ -24,13 +24,20 @@ public class NucleusApi {
     private OkHttpClient client;
     private MainView mainView;
     private Preferences prefs;
+    private final String PROJECTS_ENDPOINT = "nucleus/api/projects";
     
     public NucleusApi(MainView mainView, Preferences prefs) {
         this.client = new OkHttpClient();
         this.mainView = mainView;
         this.prefs = prefs;
     }
-        
+    /**
+     * Uploads a Burp Report XML to the Nucleus API
+     * @param scanFile scan file to be uploaded
+     * @param scanFileName scan file name
+     * @throws IOException
+     * @throws NullPointerException 
+     */
     public void uploadScanFile(File scanFile, String scanFileName) throws IOException, NullPointerException {
         RequestBody requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
@@ -39,7 +46,7 @@ public class NucleusApi {
                         RequestBody.create(scanFile, MediaType.parse("application/xml")))
                 .build();
         mainView.setProgressBar(60);
-        Request request = new Request.Builder().url(mainView.getInstanceUrl() + "nucleus/api/projects/" + mainView.getCurrentSelectedProject() + "/scans")
+        Request request = new Request.Builder().url(mainView.getInstanceUrl() + PROJECTS_ENDPOINT + "/" + mainView.getCurrentSelectedProject() + "/scans")
                 .addHeader("x-apikey", prefs.get("x-apikey", "")).post(requestBody).build();
         mainView.setProgressBar(75);
         Response response = client.newCall(request).execute();
@@ -49,10 +56,16 @@ public class NucleusApi {
         } else mainView.setProgressBar(90);
     }
     
+    /**
+     * Get a list of projects the user has access to from the Nucleus API
+     * @return HashMap<string, string> of projects
+     * @throws IOException
+     * @throws JSONException 
+     */
     public HashMap<String, String> getProjects() throws IOException, JSONException {
         HashMap<String, String> projects = new HashMap<>();
         Request request = new Request.Builder()
-                .url(mainView.getInstanceUrl() + "nucleus/api/projects")
+                .url(mainView.getInstanceUrl() + PROJECTS_ENDPOINT)
                 .addHeader("x-apikey", prefs.get("x-apikey", ""))
                 .build();
         Response response = client.newCall(request).execute();

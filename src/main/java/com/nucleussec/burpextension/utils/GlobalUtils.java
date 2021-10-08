@@ -9,7 +9,12 @@ import java.io.RandomAccessFile;
 
 public class GlobalUtils {
        
-    //https://stackoverflow.com/a/11242648
+    /**
+     * Checks if file is still being written to
+     * Source: https://stackoverflow.com/a/11242648
+     * @param file
+     * @return boolean is written
+     */
     public static boolean isCompletelyWritten(File file) {
         RandomAccessFile stream = null;
         try {

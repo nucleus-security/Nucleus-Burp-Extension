@@ -67,6 +67,10 @@ public class MainView extends javax.swing.JPanel {
         }
     }
     
+    /**
+     * Populates the projects combobox 
+     * with a list of projects from the Nucleus API
+     */
     private void populateProjectsComboBox() {
         cbProjects.removeAllItems();
         try {
@@ -82,6 +86,9 @@ public class MainView extends javax.swing.JPanel {
         }
     }
     
+    /**
+     * Populates scan url list with URLs from the Burp target tab
+     */
     private void populateScanUrlsList() {
         LinkedHashSet<String> targetUrls = new LinkedHashSet<>();
         
@@ -97,6 +104,10 @@ public class MainView extends javax.swing.JPanel {
             ((DefaultListModel)listScanUrls.getModel()).addElement(targetUrl);
     }
     
+    /**
+     * Gets the list of scan issues from the list of selected URLs
+     * @return scan issues from selected urls
+     */
     private IScanIssue[] getScanIssues() {
         List<String> selectedUrls = listScanUrls.getSelectedValuesList();
         ArrayList<IScanIssue> scanIssues = new ArrayList();
@@ -112,6 +123,10 @@ public class MainView extends javax.swing.JPanel {
         return scanIssues.toArray(new IScanIssue[scanIssues.size()]);
     }
     
+    /**
+     * Compresses file in a .ZIP format
+     * @param file compressed .ZIP file
+     */
     private void zipFile(File file) {
         try {
             String osTempDir = System.getProperty("java.io.tmpdir");
@@ -135,10 +150,14 @@ public class MainView extends javax.swing.JPanel {
         }
     }
     
+   /**
+    * Verifies that a file is completely written
+    * @param boolean isCompletelyWritten 
+    */
     private void checkIfFileIsWritten(boolean isCompletelyWritten) {
         while(!isCompletelyWritten) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(1000); //If file isn't completely read, it will sleep
                 jProgressBar.setValue(45);
             } catch (InterruptedException ex) {
                 Logger.getLogger(MainView.class.getName()).log(Level.SEVERE, null, ex);
@@ -147,6 +166,9 @@ public class MainView extends javax.swing.JPanel {
         }
     }
     
+    /**
+     * Push the scan to Nucleus
+     */
     private void pushToNucleus() {
         long currentTime = System.currentTimeMillis();
         String osTempDir = System.getProperty("java.io.tmpdir");
@@ -156,18 +178,8 @@ public class MainView extends javax.swing.JPanel {
         thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                callbacks.generateScanReport("xml", getScanIssues(), file);
-                jProgressBar.setValue(30);
-                
-                checkIfFileIsWritten(GlobalUtils.isCompletelyWritten(file));
-                
-                zipFile(file);
-                String zipFileName = osTempDir + File.separator + file.getName() + ".zip";
-                File zipFile = new File(zipFileName);
-                
-                checkIfFileIsWritten(GlobalUtils.isCompletelyWritten(zipFile));
-                
                 try {
+                    File zipFile = generateAndCompressReport(file, osTempDir);
                     nucleusApi.uploadScanFile(zipFile, zipFile.getName());
                     jProgressBar.setValue(100);
                 } catch (IOException ex) {
@@ -180,15 +192,46 @@ public class MainView extends javax.swing.JPanel {
                 }
             }
         });
-       esl.setThread(thread);
+       esl.setThread(thread); //We run this process in its own thread so it does not lag the UI
        thread.start();
     }
     
+    /**
+     * Generates Burp Report XML file and ZIP compress
+     * @param file Empty XML
+     * @param osTempDir Temp storage location
+     * @return File compressed Burp report XML
+     */
+    private File generateAndCompressReport(File file, String osTempDir) {
+        callbacks.generateScanReport("xml", getScanIssues(), file);
+        jProgressBar.setValue(30);
+
+        //Checks that XML file is completely written before attempting to ZIP                
+        checkIfFileIsWritten(GlobalUtils.isCompletelyWritten(file)); 
+
+        zipFile(file);
+        String zipFileName = osTempDir + File.separator + file.getName() + ".zip";
+        File zipFile = new File(zipFileName);
+
+        //Checks that ZIP file is completely written before attempting to upload to Nucleus API
+        checkIfFileIsWritten(GlobalUtils.isCompletelyWritten(zipFile));
+        
+        return zipFile;
+    }
+    
+    /**
+     * Gets the selected project
+     * @return String Nucleus project
+     */
     public String getCurrentSelectedProject() {
         String selectedItem = (String) cbProjects.getSelectedItem();
         return selectedItem.split("-")[0].replaceAll(" ", "");
     }
     
+    /**
+     * Get the Nucleus Instance URL
+     * @return String Nucleus Instance URL
+     */
     public String getInstanceUrl() {
         String url = txtNucleusInstanceURL.getText();
         if(!url.contains("://"))
@@ -198,6 +241,10 @@ public class MainView extends javax.swing.JPanel {
         return url;
     }
     
+    /**
+     * Set the progress bar status
+     * @param n int percentage
+     */
     public void setProgressBar(int n) {
         jProgressBar.setValue(n);
     }

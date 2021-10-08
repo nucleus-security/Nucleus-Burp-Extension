@@ -14,11 +14,19 @@ public class Tab implements ITab {
         this.mainView = mainView;
     }
 
+    /**
+     * Gets the tab name for the extension
+     * @return Nucleus 
+     */
     @Override
     public String getTabCaption() {
         return "Nucleus";
     }
 
+    /**
+     * Get the main UI component
+     * @return main component
+     */
     @Override
     public Component getUiComponent() {
         return mainView;
